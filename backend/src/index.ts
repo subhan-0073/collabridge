@@ -1,7 +1,13 @@
 import express from "express";
+import dotenv from "dotenv";
+import { connectDB } from "./config/db";
+
+dotenv.config();
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT;
+
+await connectDB();
 
 app.get("/", (_req, res) => {
   res.send("Collabridge API is running");

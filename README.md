@@ -109,7 +109,7 @@ Collabridge helps teams manage work efficiently with:
 | Milestone                          | Status   |
 | ---------------------------------- | -------- |
 | TypeScript Express server init     | ✅ Done  |
-| MongoDB + Mongoose setup           | 🔜 Soon  |
+| MongoDB + Mongoose setup           | ✅ Done  |
 | Auth routes + JWT                  | 🔜 Soon  |
 | Mongoose models (User, Task, etc.) | 🔜 Soon  |
 | CRUD for tasks/projects/teams      | 🔜 Soon  |
@@ -147,6 +147,7 @@ collabridge/
 │ │ ├── utils/ # Helpers
 │ │ ├── config/ # DB, env setup
 │ │ └── index.ts # Server entry point
+│ ├── .env
 │ └── tsconfig.json
 │
 ├── frontend/ # React + Vite + TS
