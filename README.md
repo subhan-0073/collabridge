@@ -111,7 +111,7 @@ Collabridge helps teams manage work efficiently with:
 | TypeScript Express server init     | ✅ Done  |
 | MongoDB + Mongoose setup           | ✅ Done  |
 | Auth routes + JWT                  | ✅ Done  |
-| Mongoose models (User, Task, etc.) | 🔜 Soon  |
+| Mongoose models (User, Task, etc.) | ✅ Done  |
 | CRUD for tasks/projects/teams      | 🔜 Soon  |
 | Real-time messaging with Socket.IO | 🔜 Soon  |
 | File upload setup (Multer/Cloud)   | 🔜 Soon  |
