@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { User } from "../models/user.model";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import { signToken } from "../utils/jwt";
 
 export const registerUser = async (
   req: Request,
@@ -20,9 +20,7 @@ export const registerUser = async (
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hashedPassword });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
+    const token = signToken({ id: user._id.toHexString() });
 
     res.status(201).json({
       message: "User registered successfully",
@@ -34,7 +32,8 @@ export const registerUser = async (
       },
     });
   } catch (err) {
-    res.status(500).json({ message: `Server error: ${err}` });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -53,10 +52,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     if (!isMatch)
       return void res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
-
+    const token = signToken({ id: user._id.toHexString() });
     res.status(200).json({
       message: "Login Successful",
       token,
@@ -67,6 +63,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (err) {
-    res.status(500).json({ message: `Server error: ${err}` });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
