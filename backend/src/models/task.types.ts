@@ -5,7 +5,7 @@ export interface ITask {
   description?: string;
   status: "todo" | "in-progress" | "done";
   dueDate?: Date;
-  assignedTo?: Types.ObjectId;
+  assignedTo?: Types.ObjectId[];
   project: Types.ObjectId;
   createdBy: Types.ObjectId;
   priority?: "low" | "medium" | "high";

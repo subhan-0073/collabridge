@@ -12,7 +12,7 @@ const taskSchema = new Schema<ITask>(
     },
 
     dueDate: { type: Date },
-    assignedTo: { type: Schema.Types.ObjectId, ref: "User" },
+    assignedTo: [{ type: Schema.Types.ObjectId, ref: "User" }],
 
     project: { type: Schema.Types.ObjectId, ref: "Project", required: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
