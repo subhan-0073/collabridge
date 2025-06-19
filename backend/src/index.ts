@@ -4,6 +4,7 @@ import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
 import projectRoutes from "./routes/project.routes";
+import teamRoutes from "./routes/team.routes";
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ app.get("/", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/projects", projectRoutes);
-
+app.use("/api/teams", teamRoutes);
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });
