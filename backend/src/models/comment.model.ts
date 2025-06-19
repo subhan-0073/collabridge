@@ -5,8 +5,18 @@ const commentSchema = new Schema<IComment>(
   {
     content: { type: String, required: true },
 
-    author: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    task: { type: Schema.Types.ObjectId, ref: "Task", required: true },
+    author: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    task: {
+      type: Schema.Types.ObjectId,
+      ref: "Task",
+      required: true,
+      index: true,
+    },
   },
 
   {
@@ -15,3 +25,4 @@ const commentSchema = new Schema<IComment>(
 );
 
 export const Comment = model<IComment>("Comment", commentSchema);
+export const commentPublicFields = "-__v";
