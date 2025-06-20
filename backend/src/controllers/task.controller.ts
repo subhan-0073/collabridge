@@ -1,56 +1,134 @@
 import { Request, Response } from "express";
-import { Task } from "../models/task.model";
+import { Task, taskPublicFields } from "../models/task.model";
+import { userPublicFields } from "../models/user.model";
+import { projectPublicFields } from "../models/project.model";
 import mongoose from "mongoose";
 
-export const createTask = async (req: Request, res: Response) => {
+export const createTask = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const { title, description, project, assignedTo, status } = req.body;
-
-    if (!title || !project) {
-      return void res
-        .status(400)
-        .json({ message: "Title and Project are required" });
-    }
-
-    const task = await new Task({
+    const {
       title,
       description,
       project,
+      dueDate,
       assignedTo,
       status,
-      createdBy: req.user?.id,
-    }).save();
+      priority,
+    } = req.body;
 
-    res.status(201).json({ message: "Task created successfully", task });
+    if (typeof title !== "string" || !title.trim()) {
+      return void res
+        .status(400)
+        .json({ message: "Task name is required and must be a valid string" });
+    }
+
+    if (!project || !mongoose.Types.ObjectId.isValid(project)) {
+      return void res
+        .status(400)
+        .json({ message: "A valid Project ID is required" });
+    }
+
+    let validDueDate: Date | undefined = undefined;
+    if (dueDate !== undefined) {
+      const parsed = new Date(dueDate);
+      if (isNaN(parsed.getTime()))
+        return void res.status(400).json({ message: "Invalid due date" });
+      if (parsed.getTime() < Date.now())
+        return void res
+          .status(400)
+          .json({ message: "Due date must be in the future" });
+      validDueDate = parsed;
+    }
+
+    let validAssignedTo: mongoose.Types.ObjectId[] | undefined = undefined;
+    if (assignedTo !== undefined) {
+      if (
+        !Array.isArray(assignedTo) ||
+        !assignedTo.every(
+          (id) => typeof id === "string" && mongoose.Types.ObjectId.isValid(id)
+        )
+      )
+        return void res
+          .status(400)
+          .json({ message: "Invalid assigned members list" });
+      validAssignedTo = assignedTo;
+    }
+
+    const validStatus = ["todo", "in-progress", "done"];
+    if (status !== undefined && !validStatus.includes(status)) {
+      return void res.status(400).json({ message: "Invalid task status" });
+    }
+
+    const validPriority = ["low", "medium", "high"];
+    if (priority !== undefined && !validPriority.includes(priority)) {
+      return void res.status(400).json({ message: "Invalid task priority" });
+    }
+
+    const task = await Task.create({
+      title,
+      description:
+        typeof description === "string" ? description.trim() : undefined,
+      project,
+      dueDate: validDueDate,
+      assignedTo: validAssignedTo,
+      status,
+      createdBy: req.user?.id,
+    });
+
+    const populatedTask = await Task.findById(task._id)
+      .populate("project", projectPublicFields)
+      .populate("assignedTo", userPublicFields)
+      .populate("createdBy", userPublicFields)
+      .select(taskPublicFields)
+      .lean();
+
+    return void res
+      .status(201)
+      .json({ message: "Task created successfully", task: populatedTask });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };
 
-export const getTasks = async (req: Request, res: Response) => {
+export const getTasks = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     const tasks = await Task.find({
       $or: [{ createdBy: userId }, { assignedTo: userId }],
     })
-      .populate("project")
-      .populate("assignedTo");
+      .populate("project", projectPublicFields)
+      .populate("assignedTo", userPublicFields)
+      .populate("createdBy", userPublicFields)
+      .select(taskPublicFields)
+      .lean();
 
-    res.json({ tasks });
+    return void res.json({ task: tasks });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };
 
-export const getTasksById = async (req: Request, res: Response) => {
+export const getTaskById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return void res.status(400).json({ message: "Invalid Task ID" });
   }
+
   try {
-    const task = await Task.findById(id);
+    const task = await Task.findById(id)
+      .populate("project", projectPublicFields)
+      .populate("assignedTo", userPublicFields)
+      .populate("createdBy", userPublicFields)
+      .select(taskPublicFields)
+      .lean();
 
     if (!task) {
       return void res.status(404).json({ message: "Task not found" });
@@ -58,27 +136,30 @@ export const getTasksById = async (req: Request, res: Response) => {
 
     const userId = req.user?.id;
     if (
-      task.createdBy.toString() !== userId &&
-      !task.assignedTo?.map((id) => id.toString()).includes(userId)
+      task.createdBy._id.toString() !== userId &&
+      !task.assignedTo?.some((aTo) => aTo._id.toString() === userId)
     ) {
       return void res.status(403).json({ message: "Access denied" });
     }
 
-    res.json({ task });
+    return void res.json({ task: task });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };
 
-export const updateTask = async (req: Request, res: Response) => {
+export const updateTask = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id))
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     return void res.status(400).json({ message: "Invalid Task ID" });
+  }
+
   try {
     const task = await Task.findById(id);
-
     if (!task) {
       return void res.status(404).json({ message: "Task not found" });
     }
@@ -86,39 +167,127 @@ export const updateTask = async (req: Request, res: Response) => {
       return void res.status(403).json({ message: "Forbidden: Not your task" });
     }
 
-    const { title, description, status, dueDate } = req.body;
+    const {
+      title,
+      description,
+      project,
+      dueDate,
+      assignedTo,
+      status,
+      priority,
+    } = req.body;
 
-    if (title !== undefined) task.title = title;
-    if (description !== undefined) task.description = description;
-    if (status !== undefined) task.status = status;
-    if (dueDate !== undefined) task.dueDate = dueDate;
+    if (title !== undefined) {
+      if (typeof title !== "string" || !title.trim())
+        return void res.status(400).json({
+          message: "Task name is required and must be a valid string",
+        });
+      task.title = title.trim();
+    }
 
-    const updatedTask = await task.save();
+    if (description !== undefined) {
+      if (typeof description !== "string")
+        return void res
+          .status(400)
+          .json({ message: "Description must be valid" });
+      task.description = description;
+    }
 
-    res.status(200).json({ message: "Task updated", task: updatedTask });
+    if (project !== undefined) {
+      if (!mongoose.Types.ObjectId.isValid(project))
+        return void res
+          .status(400)
+          .json({ message: "A valid Project ID is required" });
+      task.project = project;
+    }
+
+    if (dueDate !== undefined) {
+      let validDueDate: Date | undefined = undefined;
+      const parsed = new Date(dueDate);
+      if (isNaN(parsed.getTime()))
+        return void res.status(400).json({ message: "Invalid due date" });
+      if (parsed.getTime() < Date.now())
+        return void res
+          .status(400)
+          .json({ message: "Due date must be in the future" });
+
+      validDueDate = parsed;
+      task.dueDate = validDueDate;
+    }
+
+    if (assignedTo !== undefined) {
+      let validAssignedTo: mongoose.Types.ObjectId[] | undefined = undefined;
+      if (
+        !Array.isArray(assignedTo) ||
+        !assignedTo.every(
+          (id) => typeof id === "string" && mongoose.Types.ObjectId.isValid(id)
+        )
+      )
+        return void res
+          .status(400)
+          .json({ message: "Invalid assigned members list" });
+
+      validAssignedTo = assignedTo;
+      task.assignedTo = validAssignedTo;
+    }
+
+    if (status !== undefined) {
+      const validStatus = ["todo", "in-progress", "done"];
+      if (!validStatus.includes(status))
+        return void res.status(400).json({ message: "Invalid task status" });
+      task.status = status;
+    }
+
+    if (priority !== undefined) {
+      const validPriority = ["low", "medium", "high"];
+      if (!validPriority.includes(priority))
+        return void res.status(400).json({ message: "Invalid task priority" });
+      task.priority = priority;
+    }
+
+    await task.save();
+
+    const populatedTask = await Task.findById(task._id)
+      .populate("project", projectPublicFields)
+      .populate("assignedTo", userPublicFields)
+      .populate("createdBy", userPublicFields)
+      .select(taskPublicFields)
+      .lean();
+
+    return void res
+      .status(200)
+      .json({ message: "Task updated", task: populatedTask });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };
 
-export const deleteTask = async (req: Request, res: Response) => {
+export const deleteTask = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id))
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     return void res.status(400).json({ message: "Invalid Task ID" });
+  }
+
   try {
     const task = await Task.findById(id);
+    if (!task) {
+      return void res.status(404).json({ message: "Task not found" });
+    }
 
-    if (!task) return void res.status(404).json({ message: "Task not found" });
-
-    if (task.createdBy.toString() !== req.user?.id)
+    if (task.createdBy.toString() !== req.user?.id) {
       return void res.status(403).json({ message: "Forbidden: Not your task" });
+    }
 
     await task.deleteOne();
+
     return void res.status(200).json({ message: "Task deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };

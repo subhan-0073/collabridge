@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
-import mongoose from "mongoose";
 import { Comment, commentPublicFields } from "../models/comment.model";
 import { Task } from "../models/task.model";
+import { userPublicFields } from "../models/user.model";
+import mongoose from "mongoose";
 
-export const createComment = async (req: Request, res: Response) => {
+export const createComment = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { taskId } = req.params;
   const { content } = req.body;
 
@@ -19,16 +23,18 @@ export const createComment = async (req: Request, res: Response) => {
     const task = await Task.findById(taskId).lean();
     if (!task) return void res.status(404).json({ message: "Task not found" });
 
-    const newComment = await Comment.create({
+    const comment = await Comment.create({
       content: content.trim(),
-
       author: req.user?.id,
       task: taskId,
     });
 
-    const populatedComment = await Comment.findById(newComment._id).populate(
-      "author"
-    );
+    await Task.findByIdAndUpdate(taskId, { $inc: { commentsCount: 1 } });
+
+    const populatedComment = await Comment.findById(comment._id)
+      .populate("author", userPublicFields)
+      .select(commentPublicFields)
+      .lean();
 
     return void res.status(201).json({
       message: "Comment added successfully",
@@ -36,10 +42,14 @@ export const createComment = async (req: Request, res: Response) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Sevrer error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };
-export const getCommentsForTask = async (req: Request, res: Response) => {
+
+export const getCommentsForTask = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { taskId } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(taskId))
@@ -47,21 +57,25 @@ export const getCommentsForTask = async (req: Request, res: Response) => {
 
   try {
     const task = await Task.findById(taskId).lean();
-
     if (!task) return void res.status(404).json({ message: "Task not found" });
 
     const comments = await Comment.find({ task: taskId })
       .sort({ createdAt: -1 })
-      .populate("author")
-      .select(commentPublicFields);
+      .populate("author", userPublicFields)
+      .select(commentPublicFields)
+      .lean();
 
-    return void res.status(200).json({ comments });
+    return void res.status(200).json({ comment: comments });
   } catch (err) {
     console.error(err);
     return void res.status(500).json({ message: "Server error" });
   }
 };
-export const deleteComment = async (req: Request, res: Response) => {
+
+export const deleteComment = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id))
@@ -69,22 +83,22 @@ export const deleteComment = async (req: Request, res: Response) => {
 
   try {
     const comment = await Comment.findById(id);
-
     if (!comment)
       return void res.status(404).json({ message: "Comment not found" });
 
     if (comment.author.toString() !== req.user?.id)
       return void res
         .status(403)
-        .json({ message: "Forbidden:You can only delete your own comments" });
+        .json({ message: "Forbidden: You can only delete your own comments" });
 
-    await Comment.deleteOne();
+    await Task.findByIdAndUpdate(comment.task, { $inc: { commentsCount: -1 } });
+    await comment.deleteOne();
+
     return void res
       .status(200)
       .json({ message: "Comment deleted successfully" });
   } catch (err) {
     console.error(err);
-
     return void res.status(500).json({ message: "Server error" });
   }
 };

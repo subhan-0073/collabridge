@@ -6,9 +6,19 @@ const projectSchema = new Schema<IProject>(
     name: { type: String, required: true },
     description: { type: String },
 
-    team: { type: Schema.Types.ObjectId, ref: "Team", required: true },
-    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    members: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    team: {
+      type: Schema.Types.ObjectId,
+      ref: "Team",
+      required: true,
+      index: true,
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    members: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
   },
   {
     timestamps: true,
@@ -16,3 +26,4 @@ const projectSchema = new Schema<IProject>(
 );
 
 export const Project = model<IProject>("Project", projectSchema);
+export const projectPublicFields = "-__v";

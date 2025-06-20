@@ -1,8 +1,13 @@
 import { Request, Response } from "express";
+import { Project, projectPublicFields } from "../models/project.model";
+import { userPublicFields } from "../models/user.model";
+import { teamPublicFields } from "../models/team.model";
 import mongoose from "mongoose";
-import { Project } from "../models/project.model";
 
-export const createProject = async (req: Request, res: Response) => {
+export const createProject = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { name, description, team, members } = req.body;
 
@@ -10,6 +15,7 @@ export const createProject = async (req: Request, res: Response) => {
       return void res.status(400).json({
         message: "Project name is required and must be a valid string",
       });
+
     if (!team || !mongoose.Types.ObjectId.isValid(team))
       return void res
         .status(400)
@@ -24,69 +30,96 @@ export const createProject = async (req: Request, res: Response) => {
         )
       )
         return void res.status(400).json({ message: "Invalid members list" });
-
       validMembers = members;
     }
-    const project = await new Project({
+
+    const project = await Project.create({
       name,
       description:
         typeof description === "string" ? description.trim() : undefined,
       team,
       members: validMembers,
       createdBy: req.user?.id,
-    }).save();
+    });
 
-    res.status(201).json({ message: "Project created successfully", project });
+    const populatedProject = await Project.findById(project._id)
+      .populate("team", teamPublicFields)
+      .populate("members", userPublicFields)
+      .populate("createdBy", userPublicFields)
+      .select(projectPublicFields)
+      .lean();
+
+    return void res.status(201).json({
+      message: "Project created successfully",
+      project: populatedProject,
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };
 
-export const getProject = async (req: Request, res: Response) => {
+export const getProjects = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const userId = req.user?.id;
 
     const projects = await Project.find({
       $or: [{ createdBy: userId }, { members: userId }],
     })
-      .populate("team")
-      .populate("members");
-    res.status(200).json({ projects });
+      .populate("team", teamPublicFields)
+      .populate("members", userPublicFields)
+      .populate("createdBy", userPublicFields)
+      .select(projectPublicFields)
+      .lean();
+
+    return void res.status(200).json({ project: projects });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };
-export const getProjectById = async (req: Request, res: Response) => {
+
+export const getProjectById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!mongoose.Types.ObjectId.isValid(id))
     return void res.status(400).json({ message: "Invalid Project ID" });
-  }
 
   try {
     const project = await Project.findById(id)
-      .populate("team")
-      .populate("members")
-      .populate("createdBy");
+      .populate("team", teamPublicFields)
+      .populate("members", userPublicFields)
+      .populate("createdBy", userPublicFields)
+      .select(projectPublicFields)
+      .lean();
 
     if (!project)
       return void res.status(404).json({ message: "Project not found" });
+
     const userId = req.user?.id;
     if (
-      project.createdBy.toString() !== userId &&
-      !project.members?.map((id) => id.toString()).includes(userId)
+      project.createdBy._id.toString() !== userId &&
+      !project.members?.some((m) => m._id.toString() === userId)
     )
       return void res.status(403).json({ message: "Access denied" });
 
-    res.status(200).json({ project });
+    return void res.status(200).json({ project: project });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };
-export const updateProject = async (req: Request, res: Response) => {
+
+export const updateProject = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id))
@@ -94,34 +127,39 @@ export const updateProject = async (req: Request, res: Response) => {
 
   try {
     const project = await Project.findById(id);
-
     if (!project)
       return void res.status(404).json({ message: "Project not found" });
 
     if (project.createdBy.toString() !== req.user?.id)
-      return void res
-        .status(403)
-        .json({ message: "Forbidden: Not your project" });
+      return void res.status(403).json({
+        message: "Forbidden: Only project creator can update this team",
+      });
 
     const { name, description, team, members } = req.body;
 
-    if (typeof name !== "string" || !name.trim())
-      return void res.status(400).json({
-        message: "Project name is required and must be a valid string",
-      });
+    if (name !== undefined) {
+      if (typeof name !== "string" || !name.trim())
+        return void res.status(400).json({
+          message: "Project name is required and must be a valid string",
+        });
+      project.name = name.trim();
+    }
+    if (description !== undefined) {
+      if (typeof description !== "string")
+        return void res
+          .status(400)
+          .json({ message: "Description must be valid" });
+      project.description = description;
+    }
 
-    project.name = name.trim();
+    if (team !== undefined) {
+      if (!team || !mongoose.Types.ObjectId.isValid(team))
+        return void res
+          .status(400)
+          .json({ message: "A valid Team ID is required" });
+      project.team = team;
+    }
 
-    if (typeof description !== "string")
-      return void res
-        .status(400)
-        .json({ message: "Description must be valid" });
-    if (description.trim()) project.description = description.trim();
-
-    if (!team || !mongoose.Types.ObjectId.isValid(team))
-      return void res
-        .status(400)
-        .json({ message: "Valid team ID is required" });
     if (members !== undefined) {
       if (
         !Array.isArray(members) ||
@@ -129,22 +167,33 @@ export const updateProject = async (req: Request, res: Response) => {
           (id) => typeof id === "string" && mongoose.Types.ObjectId.isValid(id)
         )
       )
-        return void res.status(400).json({ members: "Invalid members list" });
-
+        return void res.status(400).json({ message: "Invalid members list" });
       project.members = members;
     }
-    const updatedProject = await project.save();
 
-    res.status(200).json({
+    await project.save();
+
+    const populatedProject = await Project.findById(project._id)
+      .populate("team", teamPublicFields)
+      .populate("members", userPublicFields)
+      .populate("createdBy", userPublicFields)
+      .select(projectPublicFields)
+      .lean();
+
+    return void res.status(200).json({
       message: "Project updated successfully",
-      project: updatedProject,
+      project: populatedProject,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };
-export const deleteProject = async (req: Request, res: Response) => {
+
+export const deleteProject = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id))
@@ -152,20 +201,21 @@ export const deleteProject = async (req: Request, res: Response) => {
 
   try {
     const project = await Project.findById(id);
-
     if (!project)
       return void res.status(404).json({ message: "Project not found" });
 
     if (project.createdBy.toString() !== req.user?.id)
-      return void res
-        .status(403)
-        .json({ message: "Forbidden: Not your project" });
+      return void res.status(403).json({
+        message: "Forbidden: Only project creator can delete this team",
+      });
 
     await project.deleteOne();
 
-    res.status(200).json({ message: "Project deleted successfully" });
+    return void res
+      .status(200)
+      .json({ message: "Project deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({ message: "Server error" });
   }
 };

@@ -4,7 +4,9 @@ import { ITeam } from "./team.types";
 const teamSchema = new Schema<ITeam>(
   {
     name: { type: String, required: true },
-    members: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
+    members: [
+      { type: Schema.Types.ObjectId, ref: "User", default: [], index: true },
+    ],
 
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
@@ -12,3 +14,4 @@ const teamSchema = new Schema<ITeam>(
 );
 
 export const Team = model<ITeam>("Team", teamSchema);
+export const teamPublicFields = "-__v";

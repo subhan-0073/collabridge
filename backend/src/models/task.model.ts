@@ -12,9 +12,14 @@ const taskSchema = new Schema<ITask>(
     },
 
     dueDate: { type: Date },
-    assignedTo: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    assignedTo: [{ type: Schema.Types.ObjectId, ref: "User", index: true }],
 
-    project: { type: Schema.Types.ObjectId, ref: "Project", required: true },
+    project: {
+      type: Schema.Types.ObjectId,
+      ref: "Project",
+      required: true,
+      index: true,
+    },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
 
     priority: {
@@ -30,3 +35,4 @@ const taskSchema = new Schema<ITask>(
 );
 
 export const Task = model<ITask>("Task", taskSchema);
+export const taskPublicFields = "-__v";
