@@ -10,9 +10,10 @@ export const createTeam = async (
   const { name, members } = req.body;
 
   if (typeof name !== "string" || !name.trim()) {
-    return void res
-      .status(400)
-      .json({ message: "Team name is required and must be valid" });
+    return void res.status(400).json({
+      message: "Team name is required and must be valid",
+      data: null,
+    });
   }
   if (members !== undefined) {
     if (
@@ -21,7 +22,10 @@ export const createTeam = async (
         (id) => typeof id === "string" && mongoose.Types.ObjectId.isValid(id)
       )
     )
-      return void res.status(400).json({ message: "Invalid members list" });
+      return void res.status(400).json({
+        message: "Invalid members list",
+        data: null,
+      });
   }
   try {
     const team = await Team.create({
@@ -36,12 +40,16 @@ export const createTeam = async (
       .select(teamPublicFields)
       .lean();
 
-    return void res
-      .status(200)
-      .json({ message: "Team created successfully", team: populatedTeam });
+    return void res.status(201).json({
+      message: "Team created successfully",
+      data: { team: populatedTeam },
+    });
   } catch (err) {
     console.error(err);
-    return void res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({
+      message: "Server error",
+      data: null,
+    });
   }
 };
 
@@ -57,10 +65,16 @@ export const getTeams = async (req: Request, res: Response): Promise<void> => {
       .select(teamPublicFields)
       .lean();
 
-    return void res.status(200).json({ team: teams });
+    return void res.status(200).json({
+      message: "Teams fetched successfully",
+      data: { teams },
+    });
   } catch (err) {
     console.error(err);
-    return void res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({
+      message: "Server error",
+      data: null,
+    });
   }
 };
 
@@ -70,7 +84,10 @@ export const getTeamById = async (
 ): Promise<void> => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id))
-    return void res.status(400).json({ message: "Invalid Team ID" });
+    return void res.status(400).json({
+      message: "Invalid Team ID",
+      data: null,
+    });
 
   try {
     const team = await Team.findById(id)
@@ -80,7 +97,10 @@ export const getTeamById = async (
       .lean();
 
     if (!team) {
-      return void res.status(404).json({ message: "Team not found" });
+      return void res.status(404).json({
+        message: "Team not found",
+        data: null,
+      });
     }
 
     const userId = req.user?.id;
@@ -89,13 +109,22 @@ export const getTeamById = async (
       team.createdBy._id.toString() !== userId &&
       !team.members.some((m) => m._id.toString() === userId)
     ) {
-      return void res.status(403).json({ message: "Forbidden: Access denied" });
+      return void res.status(403).json({
+        message: "Forbidden: Access denied",
+        data: null,
+      });
     }
 
-    return void res.status(200).json({ team: team });
+    return void res.status(200).json({
+      message: "Team fetched successfully",
+      data: { team },
+    });
   } catch (err) {
     console.error(err);
-    return void res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({
+      message: "Server error",
+      data: null,
+    });
   }
 };
 
@@ -106,18 +135,25 @@ export const updateTeam = async (
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return void res.status(400).json({ message: "Invalid Team ID" });
+    return void res.status(400).json({
+      message: "Invalid Team ID",
+      data: null,
+    });
   }
 
   try {
     const team = await Team.findById(id);
     if (!team) {
-      return void res.status(404).json({ message: "Team not found" });
+      return void res.status(404).json({
+        message: "Team not found",
+        data: null,
+      });
     }
 
     if (team.createdBy.toString() !== req.user?.id) {
       return void res.status(403).json({
-        message: "Forbidden: Only team creator can update this team ",
+        message: "Forbidden: Only team creator can update this team",
+        data: null,
       });
     }
 
@@ -125,9 +161,10 @@ export const updateTeam = async (
 
     if (name !== undefined) {
       if (typeof name !== "string" || !name.trim())
-        return void res
-          .status(400)
-          .json({ message: "Team name must be a string" });
+        return void res.status(400).json({
+          message: "Team name must be a string",
+          data: null,
+        });
       team.name = name.trim();
     }
 
@@ -138,7 +175,10 @@ export const updateTeam = async (
           (id) => typeof id === "string" && mongoose.Types.ObjectId.isValid(id)
         )
       )
-        return void res.status(400).json({ message: "Invalid members list" });
+        return void res.status(400).json({
+          message: "Invalid members list",
+          data: null,
+        });
       team.members = members;
     }
 
@@ -150,12 +190,16 @@ export const updateTeam = async (
       .select(teamPublicFields)
       .lean();
 
-    return void res
-      .status(200)
-      .json({ message: "Team updated successfully", team: populatedTeam });
+    return void res.status(200).json({
+      message: "Team updated successfully",
+      data: { team: populatedTeam },
+    });
   } catch (err) {
     console.error(err);
-    return void res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({
+      message: "Server error",
+      data: null,
+    });
   }
 };
 
@@ -165,24 +209,37 @@ export const deleteTeam = async (
 ): Promise<void> => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id))
-    return void res.status(400).json({ message: "Invalid Team ID" });
+    return void res.status(400).json({
+      message: "Invalid Team ID",
+      data: null,
+    });
 
   try {
     const team = await Team.findById(id);
     if (!team) {
-      return void res.status(404).json({ message: "Team not found" });
+      return void res.status(404).json({
+        message: "Team not found",
+        data: null,
+      });
     }
     if (team.createdBy.toString() !== req.user?.id) {
       return void res.status(403).json({
         message: "Forbidden: Only team creator can delete this team",
+        data: null,
       });
     }
 
     await team.deleteOne();
 
-    return void res.status(200).jsonp({ message: "Team deleted successfully" });
+    return void res.status(200).json({
+      message: "Team deleted successfully",
+      data: null,
+    });
   } catch (err) {
     console.error(err);
-    return void res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({
+      message: "Server error",
+      data: null,
+    });
   }
 };

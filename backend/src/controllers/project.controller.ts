@@ -14,12 +14,14 @@ export const createProject = async (
     if (typeof name !== "string" || !name.trim())
       return void res.status(400).json({
         message: "Project name is required and must be a valid string",
+        data: null,
       });
 
     if (!team || !mongoose.Types.ObjectId.isValid(team))
-      return void res
-        .status(400)
-        .json({ message: "A valid Team ID is required" });
+      return void res.status(400).json({
+        message: "A valid Team ID is required",
+        data: null,
+      });
 
     let validMembers: string[] | undefined = undefined;
     if (members !== undefined) {
@@ -29,7 +31,10 @@ export const createProject = async (
           (id) => typeof id === "string" && mongoose.Types.ObjectId.isValid(id)
         )
       )
-        return void res.status(400).json({ message: "Invalid members list" });
+        return void res.status(400).json({
+          message: "Invalid members list",
+          data: null,
+        });
       validMembers = members;
     }
 
@@ -51,11 +56,14 @@ export const createProject = async (
 
     return void res.status(201).json({
       message: "Project created successfully",
-      project: populatedProject,
+      data: { project: populatedProject },
     });
   } catch (err) {
     console.error(err);
-    return void res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({
+      message: "Server error",
+      data: null,
+    });
   }
 };
 
@@ -75,10 +83,16 @@ export const getProjects = async (
       .select(projectPublicFields)
       .lean();
 
-    return void res.status(200).json({ project: projects });
+    return void res.status(200).json({
+      message: "Projects fetched successfully",
+      data: { projects },
+    });
   } catch (err) {
     console.error(err);
-    return void res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({
+      message: "Server error",
+      data: null,
+    });
   }
 };
 
@@ -89,7 +103,9 @@ export const getProjectById = async (
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id))
-    return void res.status(400).json({ message: "Invalid Project ID" });
+    return void res
+      .status(400)
+      .json({ message: "Invalid Project ID", data: null });
 
   try {
     const project = await Project.findById(id)
@@ -100,19 +116,30 @@ export const getProjectById = async (
       .lean();
 
     if (!project)
-      return void res.status(404).json({ message: "Project not found" });
+      return void res
+        .status(404)
+        .json({ message: "Project not found", data: null });
 
     const userId = req.user?.id;
     if (
       project.createdBy._id.toString() !== userId &&
       !project.members?.some((m) => m._id.toString() === userId)
     )
-      return void res.status(403).json({ message: "Access denied" });
+      return void res.status(403).json({
+        message: "Access denied",
+        data: null,
+      });
 
-    return void res.status(200).json({ project: project });
+    return void res.status(200).json({
+      message: "Project fetched successfully",
+      data: { project },
+    });
   } catch (err) {
     console.error(err);
-    return void res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({
+      message: "Server error",
+      data: null,
+    });
   }
 };
 
@@ -123,16 +150,22 @@ export const updateProject = async (
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id))
-    return void res.status(400).json({ message: "Invalid Project ID" });
+    return void res
+      .status(400)
+      .json({ message: "Invalid Project ID", data: null });
 
   try {
     const project = await Project.findById(id);
     if (!project)
-      return void res.status(404).json({ message: "Project not found" });
+      return void res.status(404).json({
+        message: "Project not found",
+        data: null,
+      });
 
     if (project.createdBy.toString() !== req.user?.id)
       return void res.status(403).json({
         message: "Forbidden: Only project creator can update this team",
+        data: null,
       });
 
     const { name, description, team, members } = req.body;
@@ -141,22 +174,28 @@ export const updateProject = async (
       if (typeof name !== "string" || !name.trim())
         return void res.status(400).json({
           message: "Project name is required and must be a valid string",
+          data: null,
         });
+
       project.name = name.trim();
     }
     if (description !== undefined) {
       if (typeof description !== "string")
-        return void res
-          .status(400)
-          .json({ message: "Description must be valid" });
+        return void res.status(400).json({
+          message: "Description must be valid",
+          data: null,
+        });
+
       project.description = description;
     }
 
     if (team !== undefined) {
       if (!team || !mongoose.Types.ObjectId.isValid(team))
-        return void res
-          .status(400)
-          .json({ message: "A valid Team ID is required" });
+        return void res.status(400).json({
+          message: "A valid Team ID is required",
+          data: null,
+        });
+
       project.team = team;
     }
 
@@ -167,7 +206,11 @@ export const updateProject = async (
           (id) => typeof id === "string" && mongoose.Types.ObjectId.isValid(id)
         )
       )
-        return void res.status(400).json({ message: "Invalid members list" });
+        return void res.status(400).json({
+          message: "Invalid members list",
+          data: null,
+        });
+
       project.members = members;
     }
 
@@ -182,11 +225,14 @@ export const updateProject = async (
 
     return void res.status(200).json({
       message: "Project updated successfully",
-      project: populatedProject,
+      data: { project: populatedProject },
     });
   } catch (err) {
     console.error(err);
-    return void res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({
+      message: "Server error",
+      data: null,
+    });
   }
 };
 
@@ -197,25 +243,35 @@ export const deleteProject = async (
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id))
-    return void res.status(400).json({ message: "Invalid project ID" });
+    return void res
+      .status(400)
+      .json({ message: "Invalid Project ID", data: null });
 
   try {
     const project = await Project.findById(id);
     if (!project)
-      return void res.status(404).json({ message: "Project not found" });
+      return void res.status(404).json({
+        message: "Project not found",
+        data: null,
+      });
 
     if (project.createdBy.toString() !== req.user?.id)
       return void res.status(403).json({
         message: "Forbidden: Only project creator can delete this team",
+        data: null,
       });
 
     await project.deleteOne();
 
-    return void res
-      .status(200)
-      .json({ message: "Project deleted successfully" });
+    return void res.status(200).json({
+      message: "Project deleted successfully",
+      data: null,
+    });
   } catch (err) {
     console.error(err);
-    return void res.status(500).json({ message: "Server error" });
+    return void res.status(500).json({
+      message: "Server error",
+      data: null,
+    });
   }
 };

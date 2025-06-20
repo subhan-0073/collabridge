@@ -14,7 +14,7 @@ router.get("/", authMiddleware, getTeams);
 router.post("/", authMiddleware, createTeam);
 
 router.get("/:id", authMiddleware, getTeamById);
-router.put("/:id", authMiddleware, updateTeam);
+router.patch("/:id", authMiddleware, updateTeam);
 router.delete("/:id", authMiddleware, deleteTeam);
 
 export default router;
