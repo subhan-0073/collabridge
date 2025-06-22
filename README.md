@@ -112,7 +112,7 @@ Collabridge helps teams manage work efficiently with:
 | MongoDB + Mongoose setup           | ✅ Done  |
 | Auth routes + JWT                  | ✅ Done  |
 | Mongoose models (User, Task, etc.) | ✅ Done  |
-| CRUD for tasks/projects/teams      | 🔜 Soon  |
+| CRUD for tasks/projects/teams      | ✅ Done  |
 | Real-time messaging with Socket.IO | 🔜 Soon  |
 | File upload setup (Multer/Cloud)   | 🔜 Soon  |
 | Backend deployment                 | 🔜 Later |
@@ -121,9 +121,9 @@ Collabridge helps teams manage work efficiently with:
 
 | Milestone                      | Status   |
 | ------------------------------ | -------- |
-| React + Vite + TS setup        | 🔜 Soon  |
-| Tailwind CSS + shadcn/ui setup | 🔜 Soon  |
-| Register/Login UI              | 🔜 Soon  |
+| React + Vite + TS setup        | ✅ Done  |
+| Tailwind CSS + shadcn/ui setup | ✅ Done  |
+| Register/Login UI              | ✅ Done  |
 | Zustand store + Axios setup    | 🔜 Soon  |
 | Dashboard layout               | 🔜 Soon  |
 | Kanban drag-and-drop UI        | 🔜 Soon  |
