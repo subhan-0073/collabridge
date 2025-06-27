@@ -124,7 +124,7 @@ Collabridge helps teams manage work efficiently with:
 | React + Vite + TS setup        | ✅ Done  |
 | Tailwind CSS + shadcn/ui setup | ✅ Done  |
 | Register/Login UI              | ✅ Done  |
-| Zustand store + Axios setup    | 🔜 Soon  |
+| Zustand store + Axios setup    | ✅ Done  |
 | Dashboard layout               | 🔜 Soon  |
 | Kanban drag-and-drop UI        | 🔜 Soon  |
 | Socket.IO client setup         | 🔜 Soon  |

@@ -1,12 +1,36 @@
+import axios from "axios";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { loginUserAPI } from "@/lib/api/auth";
+import { useAuthState } from "@/lib/store/auth";
+import { Link, useNavigate } from "react-router-dom";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuthState();
+  const navigate = useNavigate();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    console.log("Login:", { email, password });
+
+    setErrorMsg("");
+    setLoading(true);
+
+    try {
+      const { user, token } = await loginUserAPI({ email, password });
+      login(user, token);
+      navigate("/landing");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setErrorMsg(err.response?.data?.message || "Login failed");
+      } else {
+        setErrorMsg("Unexpected error occurred");
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -46,12 +70,16 @@ export default function LoginPage() {
             required
           ></input>
         </div>
+        {errorMsg && (
+          <p className="text-sm text-red-500 text-center">{errorMsg}</p>
+        )}
 
         <button
           type="submit"
+          disabled={loading}
           className="w-full bg-primary text-primary-foreground py-2 rounded-md hover:opacity-90 transition"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <p className="text-sm text-center text-muted-foreground">
