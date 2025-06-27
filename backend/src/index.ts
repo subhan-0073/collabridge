@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
@@ -12,7 +13,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT;
 
-app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+  express.json()
+);
 
 await connectDB();
 
@@ -25,7 +32,6 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/", commentRoutes);
-
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
