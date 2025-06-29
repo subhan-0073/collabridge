@@ -3,8 +3,11 @@ import LoginPage from "./pages/auth/login";
 import RegisterPage from "./pages/auth/register";
 import LandingPage from "./pages/landing";
 import Dashboard from "./pages/dashboard";
+import DashboardLayout from "./pages/dashboard/layout";
 import PublicOnlyRoute from "./components/route-guards/PublicOnlyRoute";
 import PrivateRoute from "./components/route-guards/PrivateRoute";
+import ProjectsPage from "./pages/dashboard/projects";
+import TasksPage from "./pages/dashboard/tasks";
 
 export default function App() {
   return (
@@ -33,10 +36,14 @@ export default function App() {
         path="/dashboard"
         element={
           <PrivateRoute>
-            <Dashboard />
+            <DashboardLayout />
           </PrivateRoute>
         }
-      />
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="projects" element={<ProjectsPage />} />
+        <Route path="tasks" element={<TasksPage />} />
+      </Route>
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" />}></Route>

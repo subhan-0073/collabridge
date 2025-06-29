@@ -125,7 +125,8 @@ Collabridge helps teams manage work efficiently with:
 | Tailwind CSS + shadcn/ui setup | ✅ Done  |
 | Register/Login UI              | ✅ Done  |
 | Zustand store + Axios setup    | ✅ Done  |
-| Dashboard layout               | 🔜 Soon  |
+| Route guards                   | ✅ Done  |
+| Dashboard layout               | ✅ Done  |
 | Kanban drag-and-drop UI        | 🔜 Soon  |
 | Socket.IO client setup         | 🔜 Soon  |
 | File upload UI                 | 🔜 Soon  |
