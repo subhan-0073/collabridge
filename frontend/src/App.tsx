@@ -8,6 +8,7 @@ import PublicOnlyRoute from "./components/route-guards/PublicOnlyRoute";
 import PrivateRoute from "./components/route-guards/PrivateRoute";
 import ProjectsPage from "./pages/dashboard/projects";
 import TasksPage from "./pages/dashboard/tasks";
+import SettingsPage from "./pages/dashboard/settings";
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
         <Route index element={<Dashboard />} />
         <Route path="projects" element={<ProjectsPage />} />
         <Route path="tasks" element={<TasksPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
 
       {/* Catch-all */}
