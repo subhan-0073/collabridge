@@ -24,6 +24,9 @@ export default function DashboardLayout() {
           <Link to="/dashboard/tasks" className="block hover:underline">
             Tasks
           </Link>
+          <Link to="/dashboard/settings" className="block hover:underline">
+            Settings
+          </Link>
         </nav>
       </aside>
 

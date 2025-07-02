@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -18,8 +19,36 @@ export default function RegisterPage() {
     setErrorMsg("");
     setLoading(true);
 
+    const trimmedEmail = email.trim().toLowerCase();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
+
+    if (!isValidEmail) {
+      setErrorMsg("Please enter a valid email address.");
+      return;
+    }
+
+    const trimmedUsername = username.trim().toLowerCase();
+    const isValidUsername = /^[a-z0-9_]{3,20}$/.test(trimmedUsername);
+
+    if (!isValidUsername) {
+      setErrorMsg(
+        "Username must be 3–20 characters, lowercase letters, numbers, or underscores."
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters.");
+      return;
+    }
+
     try {
-      const { user, token } = await registerUserAPI({ name, email, password });
+      const { user, token } = await registerUserAPI({
+        name: name.trim(),
+        username: trimmedUsername,
+        email: trimmedEmail,
+        password,
+      });
       login(user, token);
 
       navigate("/landing");
@@ -52,6 +81,20 @@ export default function RegisterPage() {
             onChange={(e) => setName(e.target.value)}
             className="w-full px-3 py-2 border rounded-md bg-background"
             placeholder="Your name"
+            required
+          />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="username" className="text-sm font-medium">
+            Username
+          </label>
+          <input
+            id="username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full px-3 py-2 border rounded-md bg-background"
+            placeholder="your_username"
             required
           />
         </div>

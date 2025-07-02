@@ -5,7 +5,7 @@ import { useAuthState } from "@/lib/store/auth";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,8 +18,16 @@ export default function LoginPage() {
     setErrorMsg("");
     setLoading(true);
 
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+    const isUsername = /^[a-z0-9_]{3,20}$/.test(identifier.toLowerCase());
+
+    if (!isEmail && !isUsername) {
+      setErrorMsg("Please enter a valid email or username");
+      return;
+    }
+
     try {
-      const { user, token } = await loginUserAPI({ email, password });
+      const { user, token } = await loginUserAPI({ identifier, password });
       login(user, token);
       navigate("/landing");
     } catch (err: unknown) {
@@ -41,20 +49,18 @@ export default function LoginPage() {
       >
         <h2 className="text-2xl font-semibold text-center">Login</h2>
 
-        <div className="space-y-1">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md bg-background"
-            placeholder="you@example.com"
-            required
-          />
-        </div>
+        <label htmlFor="identifier" className="text-sm font-medium">
+          Email or Username
+        </label>
+        <input
+          id="identifier"
+          type="text"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          className="w-full px-3 py-2 border rounded-md bg-background"
+          placeholder="you@example.com or username"
+          required
+        />
 
         <div className="space-y-1">
           <label htmlFor="password" className="text-sm font-medium">
