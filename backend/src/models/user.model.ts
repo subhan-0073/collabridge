@@ -9,9 +9,15 @@ const userSchema = new Schema<IUser>(
       required: true,
       unique: true,
       match: /^[a-z0-9_]{3,20}$/,
+      set: (v: string) => v.toLowerCase(),
     },
 
-    email: { type: String, required: true, unique: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      set: (v: string) => v.toLowerCase(),
+    },
     password: { type: String, required: true, select: false },
 
     avatar: { type: String, default: "" },
@@ -36,4 +42,4 @@ const userSchema = new Schema<IUser>(
 );
 export const User = model<IUser>("User", userSchema);
 export const userPublicFields =
-  "-password -previousUsernames -lastUsernameChange -__v";
+  "-email -password -previousUsernames -lastUsernameChange -__v";

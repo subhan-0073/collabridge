@@ -80,3 +80,17 @@ export const updateUsername = async (
     },
   });
 };
+
+export const getAllUsers = async (
+  _req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const users = await User.find().select("_id name username").lean();
+    return void res
+      .status(200)
+      .json({ message: "Users fetched", data: { users } });
+  } catch (err) {
+    return void res.status(500).json({ message: "Failed to fetch users" });
+  }
+};
