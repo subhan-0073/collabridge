@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Project, projectPublicFields } from "../models/project.model";
 import { userPublicFields } from "../models/user.model";
-import { teamPublicFields } from "../models/team.model";
+import { teamPublicFields, Team } from "../models/team.model";
 import mongoose from "mongoose";
 
 export const createProject = async (
@@ -74,10 +74,21 @@ export const getProjects = async (
   try {
     const userId = req.user?.id;
 
+    const userTeams = await Team.find({ members: userId }).select("_id").lean();
+    const userTeamIds = userTeams.map((t) => t._id);
+
     const projects = await Project.find({
-      $or: [{ createdBy: userId }, { members: userId }],
+      $or: [
+        { createdBy: userId },
+        { members: userId },
+        { team: { $in: userTeamIds } },
+      ],
     })
-      .populate("team", teamPublicFields)
+      .populate({
+        path: "team",
+        select: teamPublicFields,
+        populate: { path: "members", select: userPublicFields },
+      })
       .populate("members", userPublicFields)
       .populate("createdBy", userPublicFields)
       .select(projectPublicFields)
