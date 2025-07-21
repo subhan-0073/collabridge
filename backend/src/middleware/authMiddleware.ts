@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import { verifyToken } from "../utils/jwt";
+import { User } from "../models/user.model";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -8,7 +9,7 @@ declare module "express-serve-static-core" {
   }
 }
 
-export const authMiddleware = (
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -23,6 +24,12 @@ export const authMiddleware = (
 
   try {
     const decoded = verifyToken(token);
+    const user = await User.findById(decoded.id).lean();
+    if (!user) {
+      return void res
+        .status(401)
+        .json({ message: "Unauthorized: User not found" });
+    }
     req.user = decoded;
     next();
   } catch (err) {
