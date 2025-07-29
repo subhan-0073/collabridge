@@ -9,6 +9,7 @@ export interface ITask {
   project: Types.ObjectId;
   createdBy: Types.ObjectId;
   priority?: "low" | "medium" | "high";
+  order?: number;
   commentsCount?: number;
   attachments?: string[];
   createdAt?: Date;

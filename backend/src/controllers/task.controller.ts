@@ -17,6 +17,7 @@ export const createTask = async (
       assignedTo,
       status,
       priority,
+      order,
     } = req.body;
 
     if (typeof title !== "string" || !title.trim()) {
@@ -88,7 +89,9 @@ export const createTask = async (
       dueDate: validDueDate,
       assignedTo: validAssignedTo,
       status,
+      priority,
       createdBy: req.user?.id,
+      order: typeof order === "number" ? order : undefined,
     });
 
     const populatedTask = await Task.findById(task._id)
@@ -114,8 +117,32 @@ export const createTask = async (
 export const getTasks = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
+
+    const userTeams = await mongoose
+      .model("Team")
+      .find({ members: userId })
+      .select("_id")
+      .lean();
+
+    const userProjects = await mongoose
+      .model("Project")
+      .find({
+        $or: [
+          { members: userId },
+          { team: { $in: userTeams.map((t) => t._id) } },
+        ],
+      })
+      .select("_id")
+      .lean();
+
+    const accessibleProjectIds = userProjects.map((p) => p._id);
+
     const tasks = await Task.find({
-      $or: [{ createdBy: userId }, { assignedTo: userId }],
+      $or: [
+        { createdBy: userId },
+        { assignedTo: userId },
+        { project: { $in: accessibleProjectIds } },
+      ],
     })
       .populate("project", projectPublicFields)
       .populate("assignedTo", userPublicFields)
@@ -164,19 +191,56 @@ export const getTaskById = async (
     }
 
     const userId = req.user?.id;
-    if (
-      task.createdBy._id.toString() !== userId &&
-      !task.assignedTo?.some((aTo) => aTo._id.toString() === userId)
-    ) {
-      return void res.status(403).json({
-        message: "Access denied",
-        data: null,
+
+    const isCreator = task.createdBy._id.toString() === userId;
+    const isAssigned = task.assignedTo?.some(
+      (aTo) => aTo._id.toString() === userId
+    );
+
+    if (isCreator || isAssigned) {
+      return void res.status(200).json({
+        message: "Task fetched successfully",
+        data: { task },
       });
     }
 
-    return void res.status(200).json({
-      message: "Task fetched successfully",
-      data: { task },
+    const populatedProject = task.project as any;
+    if (populatedProject) {
+      const isInProject = populatedProject?.members?.some(
+        (member: any) => member._id.toString() === userId
+      );
+
+      if (isInProject) {
+        return void res.status(200).json({
+          message: "Task fetched successfully",
+          data: { task },
+        });
+      }
+
+      if (populatedProject?.team) {
+        const team = await mongoose
+          .model("Team")
+          .findById(populatedProject.team._id)
+          .select("members")
+          .lean();
+
+        const teamData = team as any;
+        const isInTeam = teamData?.members?.some(
+          (memberId: any) => memberId.toString() === userId
+        );
+
+        if (isInTeam) {
+          return void res.status(200).json({
+            message: "Task fetched successfully",
+            data: { task },
+          });
+        }
+      }
+    }
+
+    return void res.status(403).json({
+      message: "Access denied",
+      data: null,
     });
   } catch (err) {
     console.error(err);
@@ -207,10 +271,51 @@ export const updateTask = async (
         data: null,
       });
     }
-    if (task.createdBy.toString() !== req.user?.id) {
+
+    const userId = req.user?.id;
+    const isOwner = task.createdBy.toString() === userId;
+    const isAssigned = task.assignedTo?.some(
+      (aTo) => aTo.toString() === userId
+    );
+
+    if (!isOwner && !isAssigned) {
       return void res.status(403).json({
-        message: "Forbidden: You can only update your own tasks",
+        message:
+          "Forbidden: You can only update tasks you created or are assigned to",
         data: null,
+      });
+    }
+
+    if (!isOwner && isAssigned) {
+      const { status } = req.body;
+      if (status === undefined) {
+        return void res.status(403).json({
+          message: "Forbidden: Assigned users can only update task status",
+          data: null,
+        });
+      }
+
+      const validStatus = ["todo", "in-progress", "done"];
+      if (!validStatus.includes(status)) {
+        return void res.status(400).json({
+          message: "Invalid task status",
+          data: null,
+        });
+      }
+
+      task.status = status;
+      await task.save();
+
+      const populatedTask = await Task.findById(task._id)
+        .populate("project", projectPublicFields)
+        .populate("assignedTo", userPublicFields)
+        .populate("createdBy", userPublicFields)
+        .select(taskPublicFields)
+        .lean();
+
+      return void res.status(200).json({
+        message: "Task status updated successfully",
+        data: { task: populatedTask },
       });
     }
 
@@ -222,6 +327,7 @@ export const updateTask = async (
       assignedTo,
       status,
       priority,
+      order,
     } = req.body;
 
     if (title !== undefined) {
@@ -234,11 +340,12 @@ export const updateTask = async (
     }
 
     if (description !== undefined) {
-      if (typeof description !== "string")
+      if (typeof description !== "string") {
         return void res.status(400).json({
           message: "Description must be valid",
           data: null,
         });
+      }
       task.description = description;
     }
 
@@ -304,6 +411,15 @@ export const updateTask = async (
           data: null,
         });
       task.priority = priority;
+    }
+
+    if (order !== undefined) {
+      if (typeof order !== "number")
+        return void res.status(400).json({
+          message: "Order must be a number",
+          data: null,
+        });
+      task.order = order;
     }
 
     await task.save();
