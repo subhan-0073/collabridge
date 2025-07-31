@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { Comment, commentPublicFields } from "../models/comment.model";
-import { Task } from "../models/task.model";
-import { userPublicFields } from "../models/user.model";
+import { Comment, commentPublicFields } from "../models/comment.model.js";
+import { Task } from "../models/task.model.js";
+import { userPublicFields } from "../models/user.model.js";
 import mongoose from "mongoose";
 
 export const createComment = async (

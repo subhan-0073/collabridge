@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { JwtPayload } from "jsonwebtoken";
-import { verifyToken } from "../utils/jwt";
-import { User } from "../models/user.model";
+import { verifyToken } from "../utils/jwt.js";
+import { User } from "../models/user.model.js";
 
 declare module "express-serve-static-core" {
   interface Request {

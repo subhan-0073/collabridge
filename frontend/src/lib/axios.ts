@@ -1,8 +1,11 @@
 import axios from "axios";
 import { useAuthState } from "./store/auth";
 
-const PORT = import.meta.env.VITE_BACKEND_PORT;
-const API_BASE_URL = `http://localhost:${PORT}/api`;
+// const API_BASE_URL =
+//   import.meta.env.VITE_API_URL ||
+//   `http://localhost:${import.meta.env.VITE_BACKEND_PORT}/api`;
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export const axiosInstance = axios.create({
   baseURL: API_BASE_URL,

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { Team, teamPublicFields } from "../models/team.model";
-import { userPublicFields } from "../models/user.model";
+import { Team, teamPublicFields } from "../models/team.model.js";
+import { userPublicFields } from "../models/user.model.js";
 import mongoose from "mongoose";
 
 export const createTeam = async (

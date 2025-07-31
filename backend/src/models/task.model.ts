@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { ITask } from "./task.types";
+import { ITask } from "./task.types.js";
 
 const taskSchema = new Schema<ITask>(
   {
@@ -27,7 +27,7 @@ const taskSchema = new Schema<ITask>(
       enum: ["low", "medium", "high"],
       default: "medium",
     },
-    
+
     order: { type: Number, default: 0 },
 
     commentsCount: { type: Number, default: 0 },

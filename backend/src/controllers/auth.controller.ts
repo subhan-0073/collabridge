@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { User } from "../models/user.model";
-import { signToken } from "../utils/jwt";
+import { User } from "../models/user.model.js";
+import { signToken } from "../utils/jwt.js";
 import bcrypt from "bcrypt";
 
 export const registerUser = async (

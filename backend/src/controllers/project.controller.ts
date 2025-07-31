@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { Project, projectPublicFields } from "../models/project.model";
-import { userPublicFields } from "../models/user.model";
-import { teamPublicFields, Team } from "../models/team.model";
+import { Project, projectPublicFields } from "../models/project.model.js";
+import { userPublicFields } from "../models/user.model.js";
+import { teamPublicFields, Team } from "../models/team.model.js";
 import mongoose from "mongoose";
 
 export const createProject = async (

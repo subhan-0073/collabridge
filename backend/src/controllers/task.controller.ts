@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { Task, taskPublicFields } from "../models/task.model";
-import { userPublicFields } from "../models/user.model";
-import { projectPublicFields } from "../models/project.model";
+import { Task, taskPublicFields } from "../models/task.model.js";
+import { userPublicFields } from "../models/user.model.js";
+import { projectPublicFields } from "../models/project.model.js";
 import mongoose from "mongoose";
 
 export const createTask = async (

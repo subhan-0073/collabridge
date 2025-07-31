@@ -5,15 +5,24 @@
   "license": "MIT",
   "author": "Subhan Shaikh",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "build": "npm run clean:dist && tsc",
+    "start": "node dist/index.js",
+    "preview": "tsx src/index.ts",
+    "clean": "rimraf dist node_modules package-lock.json",
+    "clean:dist": "rimraf dist",
+    "clean:modules": "rimraf node_modules package-lock.json",
+    "rebuild": "npm run clean:dist && npm run build"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.1",
+    "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.2"
   },
@@ -24,6 +33,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mongoose": "^5.11.96",
     "@types/node": "^24.0.1",
+    "rimraf": "^6.0.1",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }

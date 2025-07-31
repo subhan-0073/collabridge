@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Request, Response } from "express";
-import { User } from "../models/user.model";
+import { User } from "../models/user.model.js";
 
 export const updateUsername = async (
   req: Request,
