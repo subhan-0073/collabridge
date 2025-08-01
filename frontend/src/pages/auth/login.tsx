@@ -49,6 +49,68 @@ export default function LoginPage() {
       >
         <h2 className="text-2xl font-semibold text-center">Login</h2>
 
+        {/* Test Credentials Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+              <svg
+                className="w-3 h-3 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <h3 className="text-sm font-semibold text-blue-800">
+              Test Credentials
+            </h3>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-blue-700">
+              <svg
+                className="w-4 h-4 text-blue-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+              <span className="font-medium">Username:</span>
+              <code className="bg-blue-100 px-2 py-1 rounded text-blue-800 font-mono text-xs">
+                test
+              </code>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-blue-700">
+              <svg
+                className="w-4 h-4 text-blue-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+              <span className="font-medium">Password:</span>
+              <code className="bg-blue-100 px-2 py-1 rounded text-blue-800 font-mono text-xs">
+                123456
+              </code>
+            </div>
+          </div>
+        </div>
+
         <label htmlFor="identifier" className="text-sm font-medium">
           Email or Username
         </label>

@@ -18,6 +18,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(helmet());
 
+app.set("trust proxy", 1);
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -35,7 +37,7 @@ app.use(express.json({ limit: "10mb" }));
 
 await connectDB();
 
-app.get("/", (_req, res) => {
+app.get("/api/", (_req, res) => {
   res.send("Collabridge API is running");
 });
 

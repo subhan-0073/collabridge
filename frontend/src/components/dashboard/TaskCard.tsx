@@ -41,7 +41,7 @@ export default function TaskCard({
   const [editOpen, setEditOpen] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const currentUserId = useAuthState((s) => s.user?.id);
-  const isOwner = currentUserId === createdBy._id;
+  const isOwner = currentUserId === createdBy?._id;
   const isAssigned = assignedTo.some((member) => member._id === currentUserId);
   const canEdit = isOwner || isAssigned;
   const role = isOwner ? "isOwner" : "isAssigned";

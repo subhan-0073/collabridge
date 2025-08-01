@@ -1,6 +1,16 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export default function LandingPage() {
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(import.meta.env.VITE_API_URL);
+      const data = await response.text();
+      console.log(data);
+    };
+    fetchData();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
       <h1 className="text-4xl font-bold mb-4">Welcome to Collabridge</h1>

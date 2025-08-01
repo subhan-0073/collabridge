@@ -46,7 +46,8 @@ export default function ProjectCard({
   const [editOpen, setEditOpen] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const currentUserId = useAuthState((s) => s.user?.id);
-  const isOwner = currentUserId === createdBy._id;
+
+  const isOwner = currentUserId === createdBy?._id;
 
   const teamMembers = team.members || [];
   const teamMemberIds = new Set(teamMembers.map((m) => m._id));
@@ -153,7 +154,7 @@ export default function ProjectCard({
 
       <div className="flex items-center justify-between px-6 pb-4">
         <div className="text-xs text-muted-foreground italic flex items-center gap-1">
-          Manager: {createdBy.name}
+          Manager: {createdBy?.name}
           <span title="Project Manager">
             <Crown className="w-4 h-4 text-yellow-500 ml-1" />
           </span>
