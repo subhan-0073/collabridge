@@ -6,6 +6,9 @@ import { Button } from "../ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { useAuthState } from "@/lib/store/auth";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useDndContext } from "@dnd-kit/core";
 
 export type TaskCardProps = {
   _id: string;
@@ -46,6 +49,25 @@ export default function TaskCard({
   const canEdit = isOwner || isAssigned;
   const role = isOwner ? "isOwner" : "isAssigned";
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: _id });
+
+  const { over } = useDndContext() || {};
+  const isOver = over?.id === _id;
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    cursor: isDragging ? "grabbing" : "grab",
+  };
+
   const priorityColor = {
     low: "text-green-600",
     medium: "text-yellow-600",
@@ -77,36 +99,53 @@ export default function TaskCard({
   }
 
   return (
-    <div className="border rounded-xl bg-card p-4 shadow-sm hover:shadow-md transition space-y-2">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`border rounded-xl bg-card p-4 shadow-sm hover:shadow-md transition space-y-2 ${
+        isOver ? "ring-4 ring-blue-400 bg-blue-50" : ""
+      }`}
+    >
       <div className="flex justify-between items-center">
         <h3 className="font-semibold text-lg">{title}</h3>
-        <div className="flex gap-2">
-          {canEdit && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setEditOpen(true)}
-              title="Edit Task"
-              aria-label="Edit Task"
-            >
-              <PencilIcon className="w-4 h-4" />
-            </Button>
+        <div className="flex gap-2 items-center">
+          {isOwner && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setEditOpen(true)}
+                title="Edit Task"
+                aria-label="Edit Task"
+              >
+                <PencilIcon className="w-4 h-4" />
+              </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleDelete}
+                title="Delete Task"
+                aria-label="Delete Task"
+              >
+                {loadingDelete ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <TrashIcon className="w-4 h-4" />
+                )}
+              </Button>
+            </>
           )}
 
-          {isOwner && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleDelete}
-              title="Delete Task"
-              aria-label="Delete Task"
+          {canEdit && (
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab text-muted-foreground"
+              title="Drag Task"
             >
-              {loadingDelete ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <TrashIcon className="w-4 h-4" />
-              )}
-            </Button>
+              ⠿
+            </div>
           )}
         </div>
       </div>

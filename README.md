@@ -127,7 +127,7 @@ Collabridge helps teams manage work efficiently with:
 | Zustand store + Axios setup    | ✅ Done  |
 | Route guards                   | ✅ Done  |
 | Dashboard layout               | ✅ Done  |
-| Kanban drag-and-drop UI        | 🔜 Soon  |
+| Kanban drag-and-drop UI        | ✅ Done  |
 | Socket.IO client setup         | 🔜 Soon  |
 | File upload UI                 | 🔜 Soon  |
 | Mentions & activity UI         | 🔜 Later |

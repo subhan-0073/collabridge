@@ -82,8 +82,16 @@ export default function EditTaskModal({
   const [title, setTitle] = useState(defaultTitle);
   const [description, setDescription] = useState(defaultDescription);
   const [selectedProject, setSelectedProject] = useState<ProjectOption | null>(
-    null
+    defaultProject?.value
+      ? {
+          label: defaultProject.label,
+          value: defaultProject.value,
+          members: [],
+          teamId: undefined,
+        }
+      : null
   );
+
   const [allProjects, setAllProjects] = useState<ProjectOption[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<UserOption[]>([]);
   const [dueDate, setDueDate] = useState(defaultDueDate || "");

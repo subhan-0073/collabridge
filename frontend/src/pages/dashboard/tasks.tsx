@@ -1,8 +1,9 @@
-import TaskCard, { type TaskCardProps } from "@/components/dashboard/TaskCard";
+import { type TaskCardProps } from "@/components/dashboard/TaskCard";
 import { getTasksAPI } from "@/lib/api/task";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import CreateTaskModal from "@/components/dashboard/CreateTaskModal";
+import KanbanBoard from "@/components/dashboard/KanbanBoard";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<TaskCardProps[]>([]);
@@ -49,17 +50,7 @@ export default function TasksPage() {
   return (
     <div className="space-y-4">
       <CreateTaskModal onCreate={fetchTasks} />
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-        {tasks.map((task: TaskCardProps) => (
-          <TaskCard
-            key={task._id}
-            {...task}
-            createdAt={task.createdAt}
-            onDeleteSuccess={fetchTasks}
-            onUpdateSuccess={fetchTasks}
-          />
-        ))}
-      </div>
+      <KanbanBoard />
     </div>
   );
 }
